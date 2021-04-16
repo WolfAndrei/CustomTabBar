@@ -18,7 +18,10 @@
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBlueColor"/>
                     </view>
-                    <tabBarItem key="tabBarItem" systemItem="more" id="cW4-c8-9kc"/>
+                    <tabBarItem key="tabBarItem" image="tabBarButtonHome" id="cW4-c8-9kc">
+                        <inset key="imageInsets" minX="0.0" minY="20" maxX="0.0" maxY="-20"/>
+                        <offsetWrapper key="titlePositionAdjustment" horizontal="0.0" vertical="0.0"/>
+                    </tabBarItem>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
@@ -54,7 +57,9 @@
                         <viewLayoutGuide key="safeArea" id="Ft9-8z-6o3"/>
                         <color key="backgroundColor" systemColor="systemRedColor"/>
                     </view>
-                    <tabBarItem key="tabBarItem" systemItem="topRated" id="Wz4-sG-tdf"/>
+                    <tabBarItem key="tabBarItem" image="tabBarButtonStock" id="Wz4-sG-tdf">
+                        <inset key="imageInsets" minX="0.0" minY="20" maxX="0.0" maxY="-20"/>
+                    </tabBarItem>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Qci-4L-gfn" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -70,7 +75,9 @@
                         <viewLayoutGuide key="safeArea" id="SDU-1d-Mmk"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <tabBarItem key="tabBarItem" systemItem="search" id="Xqg-4U-7QC"/>
+                    <tabBarItem key="tabBarItem" image="tabBarButtonCar" id="Xqg-4U-7QC">
+                        <inset key="imageInsets" minX="0.0" minY="20" maxX="0.0" maxY="-20"/>
+                    </tabBarItem>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="e62-1E-ei4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -78,6 +85,9 @@
         </scene>
     </scenes>
     <resources>
+        <image name="tabBarButtonCar" width="17" height="15"/>
+        <image name="tabBarButtonHome" width="14" height="18"/>
+        <image name="tabBarButtonStock" width="17" height="17"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
