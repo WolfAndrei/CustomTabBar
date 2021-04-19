@@ -15,23 +15,14 @@ class CustomTabBarController: UITabBarController, UITabBarControllerDelegate {
         self.delegate = self
         
     }
-    
 }
 
-public protocol AnimatedTabBarProtocol where Self: UITabBar {
-    ///Currently selected item index
-    var selectedIndex: Int { get set }
-    ///Previously selected item index
-    var previousSelectedIndex: Int? { get set }
-    ///Item width
-    var sectionWidth: CGFloat { get }
-}
 
 public protocol AnimatedTabBarTransitionDelegate: AnimatedTabBarProtocol {
 //    func animateTransition(from oldIndex: Int, to newIndex: Int)
 }
 
-class AnimatedTabBar: UITabBar, AnimatedTabBarTransitionDelegate, CAAnimationDelegate {
+class AnimatedTabBar: UITabBar, AnimatedTabBarTransitionDelegate {
     
     override var selectedItem: UITabBarItem? {
         didSet {
@@ -55,26 +46,20 @@ class AnimatedTabBar: UITabBar, AnimatedTabBarTransitionDelegate, CAAnimationDel
     //MARK: - Protocol Conformance
     
     var selectedIndex: Int = 0 {
-        didSet {
-            
-        }
         willSet {
             animateTabTo(to: selectedIndex)
         }
     }
-    var previousSelectedIndex: Int?
     
-    var sectionWidth: CGFloat {
-        if let count = items?.count {
-            return self.bounds.width / CGFloat(count)
-        } else {
-            return 0
-        }
-    }
+    var previousSelectedIndex: Int?
     
     //MARK: - Private Var
     
+    /// Layers
+    private let curveLayer = CAShapeLayer()
+    private let circleLayer = CALayer()
     
+    /// Dimensions
     private let circleRadius: CGFloat = 20
     private var circleDiameter: CGFloat {
         get {
@@ -82,19 +67,28 @@ class AnimatedTabBar: UITabBar, AnimatedTabBarTransitionDelegate, CAAnimationDel
         }
     }
     
-    private let curveLayer = CAShapeLayer()
-    private let circleLayer = CALayer()
+    private var tabBarHorizontalInset: CGFloat {
+        get {
+            return 15.0
+        }
+    }
     
-    private func setupView() {
-        backgroundColor = .clear
-        curveLayer.strokeColor = UIColor.lightGray.cgColor
-        curveLayer.fillColor = UIColor.white.cgColor
-        curveLayer.lineWidth = 1.0
-        
-        circleLayer.backgroundColor = UIColor.systemPink.cgColor
-        
-        layer.insertSublayer(curveLayer, at: 0)
-        curveLayer.insertSublayer(circleLayer, at: 0)
+    private var tabBarTopInset: CGFloat {
+        get {
+            return 0.0
+        }
+    }
+    
+    private var tabBarBottomInset: CGFloat {
+        get {
+            return 5.0
+        }
+    }
+    
+    private var tabBarCornerRadius: CGFloat {
+        get {
+            return 10.0
+        }
     }
     
     //MARK: - Lifecycle
@@ -115,26 +109,43 @@ class AnimatedTabBar: UITabBar, AnimatedTabBarTransitionDelegate, CAAnimationDel
     
     override func layoutSubviews() {
         super.layoutSubviews()
+        updateFrames()
+        animateTabTo(to: selectedIndex)
+    }
+    
+    //MARK: - Private methods
+    
+    private func setupView() {
+        backgroundColor = .clear
+        curveLayer.strokeColor = UIColor.lightGray.cgColor
+        curveLayer.fillColor = UIColor.white.cgColor
+        curveLayer.lineWidth = 1.0
         
+        circleLayer.backgroundColor = UIColor.systemPink.cgColor
+        
+        layer.insertSublayer(curveLayer, at: 0)
+        curveLayer.insertSublayer(circleLayer, at: 0)
+    }
+    
+    private func updateFrames() {
         curveLayer.frame = bounds
         
-        let x = sectionWidth * CGFloat(selectedIndex) + sectionWidth / 2 - circleRadius
-        
-        circleLayer.frame = .init(x: x, y: -20, width: circleDiameter, height: circleDiameter)
+        let xCirclePosition = selectedTabCenter - circleRadius
+        circleLayer.frame = CGRect(x: xCirclePosition,
+                                   y: -circleRadius,
+                                   width: circleDiameter,
+                                   height: circleDiameter)
         circleLayer.cornerRadius = circleRadius
-         
-        animateTabTo(to: selectedIndex)
     }
     
     //MARK: - Animation
     
     func bounceAnimation(to layer: CALayer) {
-        
         let bounceAnimation = CAKeyframeAnimation(keyPath: "transform.scale")
         bounceAnimation.values = [1.0, 1.4, 0.9, 1.02, 1.0]
         bounceAnimation.duration = TimeInterval(0.3)
         bounceAnimation.calculationMode = CAAnimationCalculationMode.cubic
-        layer.add(bounceAnimation, forKey: "")
+        layer.add(bounceAnimation, forKey: "bounce_animation")
     }
     
     func upAnimation(from oldIndex: Int?, to newIndex: Int) {
@@ -171,22 +182,9 @@ class AnimatedTabBar: UITabBar, AnimatedTabBarTransitionDelegate, CAAnimationDel
     }
     
     func animateTabTo(to selectedIndex: Int, completion: (() -> Void)? = nil) {
-        let path = createPath(selectedIndex)
+        let path = createCurvePath(for: selectedIndex)
         CATransaction.begin()
         let animation : CABasicAnimation = CABasicAnimation(keyPath: "path")
-        
-//        let animation: CAKeyframeAnimation = CAKeyframeAnimation(keyPath: "path")
-//        if let prevSel = previousSelectedIndex {
-//            let basicPath1 = basicPath(prevSel)
-//            let newBase = basicPath(selectedIndex)
-//            let path = createPath(selectedIndex)
-//
-//            animation.values = [basicPath1, newBase, path]
-//        } else {
-//
-//            animation.values =  [path]
-//        }
-//        animation.values =  [path]
         animation.toValue = path
         animation.fillMode = .forwards
         animation.isRemovedOnCompletion = false
@@ -239,160 +237,89 @@ class AnimatedTabBar: UITabBar, AnimatedTabBarTransitionDelegate, CAAnimationDel
         return path.cgPath
     }
     
-    
-    func basicPath(_ selectedIndex: Int) -> CGPath {
+    func createCurvePath(for selectedIndex: Int) -> CGPath {
         let path = UIBezierPath()
+        
         let beginningOfTab = CGFloat(selectedIndex) * sectionWidth
-        
-        path.move(to: CGPoint(x: 10, y: self.frame.height * 0.4)) // start top left
-        
-        
-        path.addArc(withCenter: CGPoint(x: self.frame.height * 0.2 + 10,
-                                        y: 10 + self.frame.height * 0.2),
-                    radius: self.frame.height * 0.2,
-                    startAngle: CGFloat.pi,
-                    endAngle: CGFloat.pi * 3 / 2,
-                    clockwise: true)
-        
-        
-        
-        path.addLine(to: CGPoint(x: (beginningOfTab + self.frame.height * 0.2) + 10, y: 10)) // the beginning of the trough
-        
-        
-        
-        let radius = self.frame.height * 0.1
-        let diameter = radius * 2
-        
-        
-        path.addLine(to: .init(x: (beginningOfTab + diameter) + 10 + radius, y: 10))
-    
-        
         let beginningOfNextTab = CGFloat(selectedIndex + 1) * sectionWidth
         
-        let new = beginningOfNextTab - (diameter) - 10
-        
-        let start = beginningOfTab + radius + self.frame.height * 0.2 + 10
-        let end = beginningOfNextTab - (radius + self.frame.height * 0.2 + 10)
-        
-        let d = (end - start) / 2
-        
-//        let rad = diameter - 10
-        path.addLine(to: .init(x: (beginningOfTab + sectionWidth * 0.5) + d, y: 10))
-        path.addLine(to: .init(x: (new) + radius, y: 10))
-        path.addLine(to: CGPoint(x: self.frame.width - self.frame.height * 0.2 - 10, y: 10))
-        
-        path.addArc(withCenter: CGPoint(x: self.frame.width - self.frame.height * 0.2 - 10,
-                                        y: 10 + self.frame.height * 0.2),
-                    radius: self.frame.height * 0.2,
-                    startAngle: CGFloat.pi * 3 / 2,
-                    endAngle: 0,
-                    clockwise: true)
-        
-
-        
-        
-        path.addLine(to: CGPoint(x: self.frame.width - 10, y: self.frame.height * 0.6))
-        
-        path.addArc(withCenter: CGPoint(x: self.frame.width - self.frame.height * 0.2 - 10,
-                                        y: self.frame.height * 0.6),
-                    radius: self.frame.height * 0.2,
-                    startAngle: 0,
-                    endAngle: CGFloat.pi / 2,
-                    clockwise: true)
-        
-        path.addLine(to: CGPoint(x: self.frame.height * 0.2 + 10, y: self.frame.height * 0.8))
-        
-        
-        path.addArc(withCenter: CGPoint(x: self.frame.height * 0.2 + 10,
-                                        y: self.frame.height * 0.6),
-                    radius: self.frame.height * 0.2,
-                    startAngle: CGFloat.pi / 2,
-                    endAngle: CGFloat.pi,
-                    clockwise: true)
-        path.close()
-        
-        return path.cgPath
-        }
-    
-    
-    
-    
-    func createPath(_ selectedIndex: Int) -> CGPath {
-        let path = UIBezierPath()
-        
-        let beginningOfTab = CGFloat(selectedIndex) * sectionWidth
-        
-        path.move(to: CGPoint(x: 10, y: self.frame.height * 0.4)) // start top left
-        
-        
-        path.addArc(withCenter: CGPoint(x: self.frame.height * 0.2 + 10,
-                                        y: 10 + self.frame.height * 0.2),
-                    radius: self.frame.height * 0.2,
+        // top left initial point
+        path.move(to: CGPoint(x: tabBarHorizontalInset,
+                              y: tabBarCornerRadius * 2)) // start top left
+        // top left corner
+        path.addArc(withCenter: CGPoint(x: tabBarCornerRadius + tabBarHorizontalInset,
+                                        y: tabBarCornerRadius + tabBarTopInset),
+                    radius: tabBarCornerRadius,
                     startAngle: CGFloat.pi,
                     endAngle: CGFloat.pi * 3 / 2,
                     clockwise: true)
+        //top horizontal line
+        path.addLine(to: CGPoint(x: (beginningOfTab + tabBarCornerRadius) + tabBarHorizontalInset,
+                                 y: tabBarTopInset))
         
-        
-        
-        path.addLine(to: CGPoint(x: (beginningOfTab + self.frame.height * 0.2) + 10, y: 10)) // the beginning of the trough
-        
-        let radius = self.frame.height * 0.1
-        let diameter = radius * 2
-        
-        path.addArc(withCenter: .init(x: (beginningOfTab + diameter) + 10,
-                                      y: -radius + 10),
-                    radius: radius,
+//---
+        let smallRadius = tabBarCornerRadius / 2
+        let smallDiameter = smallRadius * 2
+
+        //left selected corner
+        path.addArc(withCenter: .init(x: (beginningOfTab + smallDiameter) + tabBarHorizontalInset,
+                                      y: -smallRadius + tabBarTopInset),
+                    radius: smallRadius,
                     startAngle: .pi / 2,
                     endAngle: 0,
                     clockwise: false)
     
+        let xCenterOfRightSelectedCornerArc = beginningOfNextTab - (smallDiameter) - tabBarHorizontalInset
         
-        let beginningOfNextTab = CGFloat(selectedIndex + 1) * sectionWidth
+        let xStartOfCenterArc = beginningOfTab + smallRadius + tabBarCornerRadius + tabBarHorizontalInset
+        let xEndOfCenterArc = beginningOfNextTab - (smallRadius + tabBarCornerRadius + tabBarHorizontalInset)
+        let centerRadiusArc = (xEndOfCenterArc - xStartOfCenterArc) / 2
         
-        let new = beginningOfNextTab - (diameter) - 10
-        
-        let start = beginningOfTab + radius + self.frame.height * 0.2 + 10
-        let end = beginningOfNextTab - (radius + self.frame.height * 0.2 + 10)
-        
-        let d = (end - start) / 2
-        
-        path.addArc(withCenter: .init(x: beginningOfTab + sectionWidth * 0.5, y: -radius + 10),
-                    radius: d,
+        // center arc
+        path.addArc(withCenter: .init(x: beginningOfTab + sectionWidth / 2,
+                                      y: -smallRadius + tabBarTopInset),
+                    radius: centerRadiusArc,
                     startAngle: .pi,
                     endAngle: 0,
                     clockwise: true)
         
-        path.addArc(withCenter: .init(x: new,
-                                      y: -radius + 10),
-                    radius: radius,
+        // right selected corner
+        path.addArc(withCenter: .init(x: xCenterOfRightSelectedCornerArc,
+                                      y: -smallRadius + tabBarTopInset),
+                    radius: smallRadius,
                     startAngle: .pi,
                     endAngle: .pi / 2,
                     clockwise: false)
-    
-        path.addLine(to: CGPoint(x: self.frame.width - self.frame.height * 0.2 - 10, y: 10))
+//---
         
-        path.addArc(withCenter: CGPoint(x: self.frame.width - self.frame.height * 0.2 - 10,
-                                        y: 10 + self.frame.height * 0.2),
-                    radius: self.frame.height * 0.2,
+        //top horizontal line
+        path.addLine(to: CGPoint(x: tabBarWidth - tabBarCornerRadius - tabBarHorizontalInset,
+                                 y: tabBarTopInset))
+        // top right corner
+        path.addArc(withCenter: CGPoint(x: tabBarWidth - tabBarCornerRadius - tabBarHorizontalInset,
+                                        y: tabBarTopInset + tabBarCornerRadius),
+                    radius: tabBarCornerRadius,
                     startAngle: CGFloat.pi * 3 / 2,
                     endAngle: 0,
                     clockwise: true)
-        
-        path.addLine(to: CGPoint(x: self.frame.width - 10, y: self.frame.height * 0.6))
-        
-        path.addArc(withCenter: CGPoint(x: self.frame.width - self.frame.height * 0.2 - 10,
-                                        y: self.frame.height * 0.6),
-                    radius: self.frame.height * 0.2,
+        //right vertical line
+        path.addLine(to: CGPoint(x: tabBarWidth - tabBarHorizontalInset,
+                                 y: tabBarHeight - tabBarCornerRadius - tabBarBottomInset))
+        //bottom right corner
+        path.addArc(withCenter: CGPoint(x: tabBarWidth - tabBarCornerRadius - tabBarHorizontalInset,
+                                        y: tabBarHeight - tabBarCornerRadius - tabBarBottomInset),
+                    radius: tabBarCornerRadius,
                     startAngle: 0,
                     endAngle: CGFloat.pi / 2,
                     clockwise: true)
+        //bottom horizontal line
+        path.addLine(to: CGPoint(x: tabBarCornerRadius + tabBarHorizontalInset,
+                                 y: tabBarHeight - tabBarBottomInset))
         
-        path.addLine(to: CGPoint(x: self.frame.height * 0.2 + 10, y: self.frame.height * 0.8))
-        
-        
-        path.addArc(withCenter: CGPoint(x: self.frame.height * 0.2 + 10,
-                                        y: self.frame.height * 0.6),
-                    radius: self.frame.height * 0.2,
+        //bottom left corner
+        path.addArc(withCenter: CGPoint(x: tabBarCornerRadius + tabBarHorizontalInset,
+                                        y: tabBarHeight - tabBarCornerRadius - tabBarBottomInset),
+                    radius: tabBarCornerRadius,
                     startAngle: CGFloat.pi / 2,
                     endAngle: CGFloat.pi,
                     clockwise: true)

@@ -14,6 +14,7 @@
 		0052C9BE2625D0FB00A8163C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0052C9BD2625D0FB00A8163C /* Assets.xcassets */; };
 		0052C9C12625D0FB00A8163C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0052C9BF2625D0FB00A8163C /* LaunchScreen.storyboard */; };
 		0052C9CA2625D16900A8163C /* CustomTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0052C9C92625D16900A8163C /* CustomTabBarController.swift */; };
+		00551A6E262D6B4F00D4EFC6 /* AnimatedTabBarProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00551A6D262D6B4F00D4EFC6 /* AnimatedTabBarProtocol.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		0052C9C02625D0FB00A8163C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		0052C9C22625D0FB00A8163C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0052C9C92625D16900A8163C /* CustomTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabBarController.swift; sourceTree = "<group>"; };
+		00551A6D262D6B4F00D4EFC6 /* AnimatedTabBarProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedTabBarProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +64,7 @@
 				0052C9B62625D0F800A8163C /* SceneDelegate.swift */,
 				0052C9B82625D0F800A8163C /* ViewController.swift */,
 				0052C9C92625D16900A8163C /* CustomTabBarController.swift */,
+				00551A6D262D6B4F00D4EFC6 /* AnimatedTabBarProtocol.swift */,
 				0052C9BA2625D0F800A8163C /* Main.storyboard */,
 				0052C9BD2625D0FB00A8163C /* Assets.xcassets */,
 				0052C9BF2625D0FB00A8163C /* LaunchScreen.storyboard */,
@@ -142,6 +145,7 @@
 			files = (
 				0052C9B92625D0F800A8163C /* ViewController.swift in Sources */,
 				0052C9B52625D0F800A8163C /* AppDelegate.swift in Sources */,
+				00551A6E262D6B4F00D4EFC6 /* AnimatedTabBarProtocol.swift in Sources */,
 				0052C9CA2625D16900A8163C /* CustomTabBarController.swift in Sources */,
 				0052C9B72625D0F800A8163C /* SceneDelegate.swift in Sources */,
 			);
